@@ -25,14 +25,17 @@ provide(routerStateKey, r);
 <template>
   Hello from app
 
-  <Route2 path="a">
+  <Route2 path="a" match-first>
     <Link2 href="b/c">To b/c</Link2>
 
     <Route2 path="b">
+      Nested under B
       <Route2 path="c">
         <Route2 path="d"> Within D </Route2>
       </Route2>
     </Route2>
+
+    <Route2> Nested under A </Route2>
   </Route2>
 
   <!-- <Router>
