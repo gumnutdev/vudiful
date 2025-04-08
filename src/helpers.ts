@@ -23,3 +23,6 @@ export function matchPath(propsPath: string, routerPath: string): RouterState {
     active: true,
   };
 }
+
+export const hrefIsRemote = (href: string) =>
+  href.startsWith('http://') || href.startsWith('https://');

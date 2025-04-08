@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { computed, inject } from 'vue';
 import { routerStateKey } from './keys';
+import { hrefIsRemote } from './helpers';
 
 const props = defineProps<{
   href?: string;
@@ -23,6 +24,9 @@ const href = computed(() => {
 });
 
 const onClick = (e: MouseEvent) => {
+  if (hrefIsRemote(href.value) || e.metaKey || e.altKey || e.shiftKey) {
+    return;
+  }
   e.preventDefault();
 
   window.history.pushState(null, '', href.value);

@@ -19,13 +19,18 @@ watchEffect((cleanup) => {
   window.addEventListener('popstate', update, { signal: c.signal });
 });
 
+const matchFirst = ref(true);
+const toggleMatchFirst = () => (matchFirst.value = !matchFirst.value);
+
 provide(routerStateKey, r);
 </script>
 
 <template>
   Hello from app
 
-  <Route2 path="a" match-first>
+  <button @click="toggleMatchFirst">Toggle</button>
+
+  <Route2 path="a" :match-first="matchFirst">
     <Link2 href="b/c">To b/c</Link2>
 
     <Route2 path="b">
@@ -36,6 +41,7 @@ provide(routerStateKey, r);
     </Route2>
 
     <Route2> Nested under A </Route2>
+    <Route2> Extra nested under A </Route2>
   </Route2>
 
   <!-- <Router>
