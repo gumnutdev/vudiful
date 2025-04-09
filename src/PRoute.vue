@@ -1,24 +1,44 @@
 <script lang="ts" setup>
-import { computed, inject, onUnmounted, provide, reactive, watchEffect } from 'vue';
-import { prouteStateKey, SomeState } from './keys';
+import { inject, onUnmounted, provide, reactive, watchEffect } from 'vue';
+import { prouteStateKey, type SomeState } from './keys';
 import { matchPath } from './helpers';
 
-const props = defineProps<{
-  path?: string;
+// nb. uses long-form syntax so we can get `undefined` explicitly
+const props = defineProps({
+  /**
+   * Render all subordinate routes that match, not just the first.
+   */
+  matchSelf: {
+    type: Boolean,
+    default: undefined,
+    required: false,
+  },
 
   /**
    * Normally, if this `<Route>` has children, it will not match unless a child matches.
    *
    * Set this to display the `<Route>` regardless.
-   * This has no effect if the `<Route>` has no children.
+   *
+   * If the route has no children, this has no effect: the route matches anyway.
+   * If the route path is a glob, this has no effect: the route matches anyway.
+   * (You can force this to `false` to change the behavior.)
    */
-  matchSelf?: boolean;
+  matchAll: {
+    type: Boolean,
+    default: undefined,
+    required: false,
+  },
 
   /**
-   * Render all subordinate routes that match, not just the first.
+   * The path to match.
+   * The string "/" and "" are the same, you can also prefix/suffix the path if you want.
    */
-  matchAll?: boolean;
-}>();
+  path: {
+    type: String,
+    default: undefined,
+    required: false,
+  },
+});
 
 const reactiveSelf = reactive<SomeState>({
   match: undefined,
@@ -64,11 +84,18 @@ watchEffect(() => {
   if (props.matchSelf) {
     reactiveSelf.match = reactiveSelf.pathMatch;
   } else {
-    const anyChildMatch = children.some(({ match }) => match) || !children.length;
+    const hasExcessPath = ourState.path !== '/';
+
+    // We match:
+    //   - (if not disabled) a glob result (ends with "*")
+    //   - we has no children and no excess path (i.e., we didn't descend into invalid children)
+    //   - or we have normal matched children.
+    const anyChildMatch =
+      (props.matchAll !== false && (matchOut.globResult || (!children.length && !hasExcessPath))) ||
+      children.some(({ match }) => match);
+
     reactiveSelf.match = reactiveSelf.pathMatch && anyChildMatch;
   }
-
-  //  reactiveSelf.hasExcessPath = ourState.path !== '/' && !anyChildMatch;
 
   if (props.matchAll) {
     // display <= match

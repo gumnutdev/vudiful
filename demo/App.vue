@@ -51,12 +51,17 @@ const handleGoto = (e: Event) => {
   <PRouter>
     <PRoute>
       <PRoute path="/extra/">
-        <PRoute path="1" sub-match>
+        <PRoute path="1" match-self>
           <PRoute path="2"><strong>First</strong></PRoute>
           <PRoute path="2"><strong>Second</strong></PRoute>
-          <PRoute path="2a" sub-match>
+          <PRoute path="2a">
             I'm a 2a
             <PRoute path="3">I'm 3 and I should display</PRoute>
+          </PRoute>
+          <PRoute path="*">
+            No route matched
+
+            <PRoute path="butt"> But butt </PRoute>
           </PRoute>
         </PRoute>
       </PRoute>

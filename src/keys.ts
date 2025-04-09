@@ -4,6 +4,7 @@ export type MatchResult = {
   path: string;
   nest: string;
   matched: boolean;
+  globResult: boolean;
 
   /**
    * The canonical, complete set of params 'within' this route.
@@ -25,6 +26,7 @@ export const defaultMatchResult: MatchResult = Object.freeze({
   path: '',
   nest: '',
   matched: false,
+  globResult: false,
 });
 
 export type MatchState = {

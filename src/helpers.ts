@@ -48,6 +48,8 @@ export function matchPath(propsPath: string, routerPath: string): MatchResult {
   let paramsBase: Record<string, string> | undefined;
   let params: Record<string, string> | undefined;
 
+  let globResult = false;
+
   outer: for (let i = 0; i < propsPartsLength; ++i) {
     const { controlCode, rest } = splitPart(propsParts[i]);
 
@@ -71,6 +73,7 @@ export function matchPath(propsPath: string, routerPath: string): MatchResult {
       }
 
       case '*': {
+        globResult = true;
         params ??= {};
         paramsBase ??= {};
         params[rest] = routerParts.slice(i).join('/');
@@ -90,6 +93,7 @@ export function matchPath(propsPath: string, routerPath: string): MatchResult {
     matched: true,
     params,
     paramsBase,
+    globResult,
   };
 }
 
