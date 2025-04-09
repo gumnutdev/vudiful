@@ -124,7 +124,7 @@ export const mergeHref = (arg: { href?: string; state?: RouterState; root?: stri
   return u.pathname;
 };
 
-export const gotoHref = (hrefRef: MaybeRef<string | undefined>, e?: MouseEvent) => {
+export const gotoResolvedHref = (hrefRef: MaybeRef<string | undefined>, e?: MouseEvent) => {
   const href = toValue(hrefRef);
 
   if (e) {
@@ -157,8 +157,6 @@ export const determineClass = (arg: {
 
   const checkHref = ensureTrailingSlash(valueHref);
   const total = arg.state.nest + arg.state.path.substring(1);
-
-  console.info('runnig determienClass', arg, { checkHref, total });
 
   if (arg.activeClass !== undefined && total === checkHref) {
     return arg.activeClass;

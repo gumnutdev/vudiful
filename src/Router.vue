@@ -1,41 +1,22 @@
-<!-- Some comment -->
 <script lang="ts" setup>
-/**
- * Some comment inside
- */
-
 import { provide, ref, watchEffect } from 'vue';
-import {
-  ensureTrailingSlash,
-  mangeRouteChildren,
-  pathnameKey,
-  routerParamsKey,
-  routerUrlKey,
-} from './shared.ts';
+import { defaultRouterState, type RouterState, routerStateKey } from './keys.ts';
+import { ensureTrailingSlash } from './helpers.ts';
 
-const route = ref(ensureTrailingSlash(window.location.pathname));
-const children = mangeRouteChildren();
-
-provide(pathnameKey, route);
-provide(routerUrlKey, '/');
-provide(routerParamsKey, {});
-
-watchEffect(() => {
-  for (const c of children) {
-    c(route.value);
-  }
-});
+const r = ref<RouterState>(defaultRouterState);
 
 watchEffect((cleanup) => {
   const c = new AbortController();
   cleanup(() => c.abort());
 
-  window.addEventListener(
-    'popstate',
-    () => (route.value = ensureTrailingSlash(window.location.pathname)),
-    { signal: c.signal },
-  );
+  const update = () => {
+    r.value = { path: ensureTrailingSlash(window.location.pathname), nest: '/' };
+  };
+  update();
+  window.addEventListener('popstate', update, { signal: c.signal });
 });
+
+provide(routerStateKey, r);
 </script>
 
 <template>

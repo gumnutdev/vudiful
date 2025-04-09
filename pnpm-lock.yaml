@@ -8,19 +8,19 @@ importers:
 
   .:
     dependencies:
-      '@vitejs/plugin-vue':
-        specifier: ^5.2.3
-        version: 5.2.3(vite@6.2.5(@types/node@22.13.14))(vue@3.5.13)
+      vue:
+        specifier: ^3.5.13
+        version: 3.5.13
     devDependencies:
       '@types/node':
         specifier: ^22.7.5
         version: 22.13.14
+      '@vitejs/plugin-vue':
+        specifier: ^5.2.3
+        version: 5.2.3(vite@6.2.5(@types/node@22.13.14))(vue@3.5.13)
       vite:
         specifier: ^6.2.5
         version: 6.2.5(@types/node@22.13.14)
-      vue:
-        specifier: ^3.5.13
-        version: 3.5.13
 
 packages:
 

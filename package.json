@@ -1,16 +1,23 @@
 {
+  "name": "vudiful",
+  "version": "0.1.0",
   "devDependencies": {
     "@types/node": "^22.7.5",
-    "vite": "^6.2.5",
+    "@vitejs/plugin-vue": "^5.2.3",
+    "vite": "^6.2.5"
+  },
+  "peerDependencies": {
     "vue": "^3.5.13"
   },
   "type": "module",
   "scripts": {
     "test": "NODE_OPTIONS='--experimental-transform-types --disable-warning=ExperimentalWarning' node --test **/*.test.ts"
   },
-  "private": true,
-  "license": "Apache-2.0",
-  "dependencies": {
-    "@vitejs/plugin-vue": "^5.2.3"
-  }
+  "exports": {
+    ".": {
+      "import": "./src/index.ts",
+      "types": "./src/types.d.ts"
+    }
+  },
+  "license": "Apache-2.0"
 }

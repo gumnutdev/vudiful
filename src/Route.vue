@@ -5,28 +5,8 @@ import { matchPath } from './helpers';
 
 const props = defineProps<{
   path?: string;
-
-  /**
-   * The component to render if this route is matched.
-   *
-   * This is not required; you can simply place the component inside your declarative router definition.
-   * The convenience here is that the children of the `<Route>` will automatically be slotted inside your component.
-   * This might be more urgonomic especially for "layout" components.
-   */
   component?: Component;
-
-  /**
-   * If true, will only match the first direct descendant `<Route>`, not all valid ones.
-   */
   matchFirst?: boolean;
-
-  /**
-   * By default, the contained component will be recreated if the params here (e.g., "/:foo") change.
-   * This is done by changing the "key" based on the params.
-   * This enables developers to be lazy: the values in `useParams` can be immutable, as if they change, the component will be unmounted/remounted.
-   *
-   * Set this to `true` to instead retain.
-   */
   retainOnParamsChange?: boolean;
 }>();
 
@@ -70,7 +50,12 @@ const match = computed<RouterState>(() => {
   // finally set global params
   if (out.params) {
     out.params = Object.assign({}, state.value.params, out.params);
+  } else {
+    out.params = state.value.params;
+  }
 
+  // ... and base (links)
+  if (out.paramsBase) {
     const matchedParamsBase = out.paramsBase;
     out.paramsBase = Object.assign({}, state.value.paramsBase);
 
@@ -78,7 +63,6 @@ const match = computed<RouterState>(() => {
       out.paramsBase[key] = state.value.nest + matchedParamsBase[key].substring(1);
     }
   } else {
-    out.params = state.value.params;
     out.paramsBase = state.value.paramsBase;
   }
 
