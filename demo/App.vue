@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import Route2 from '../src/Route2.vue';
+import Route from '../src/Route.vue';
 
 import { provide, ref, watchEffect } from 'vue';
-import Link2 from '../src/Link2.vue';
+import Link from '../src/Link.vue';
 import { defaultRouterState, type RouterState, routerStateKey } from '../src/keys';
 import { ensureTrailingSlash } from '../src/shared';
 import DemoComponent from './DemoComponent.vue';
@@ -32,25 +32,25 @@ provide(routerStateKey, r);
 
   <button @click="toggleMatchFirst">Toggle</button>
 
-  <Route2 path="a" :match-first="matchFirst">
-    <Link2 href="b/c/d">To b/c/d</Link2><br />
-    <Link2 href="b/something/d">To b/something/d</Link2><br />
+  <Route path="a" :match-first="matchFirst">
+    <Link href="b/c/d">To b/c/d</Link><br />
+    <Link href="b/something/d">To b/something/d</Link><br />
 
-    <Route2 path="b">
+    <Route path="b">
       <DemoComponent />
 
       Nested under B
-      <Route2 path=":anything" :component="WrapComponent">
+      <Route path="?anything" :component="WrapComponent">
         <DemoComponent />
-        <Route2 path="d">
+        <Route path="d">
           <DemoComponent />
-        </Route2>
-      </Route2>
-    </Route2>
+        </Route>
+      </Route>
+    </Route>
 
-    <Route2> Nested under A </Route2>
-    <Route2> Extra nested under A </Route2>
-  </Route2>
+    <Route> Nested under A </Route>
+    <Route> Extra nested under A </Route>
+  </Route>
 
   <!-- <Router>
     <Route path="/page/*"

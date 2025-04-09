@@ -1,202 +1,126 @@
 <script lang="ts" setup>
-import {
-  computed,
-  inject,
-  ref,
-  Component,
-  watchEffect,
-  provide,
-  reactive,
-  toValue,
-  onUnmounted,
-  onMounted,
-  onBeforeMount,
-} from 'vue';
-import {
-  buildMatcher,
-  mangeRouteChildren,
-  registerSelfKey,
-  routerParamsKey,
-  routerUrlKey,
-} from './shared.ts';
-import RouterShow from './RouterShow.vue';
+import { type Component, computed, inject, provide } from 'vue';
+import { defaultRouterState, type RouterState, routerStateKey } from './keys';
+import { matchPath } from './helpers';
 
 const props = defineProps<{
-  /**
-   * The path to match. May include "/:foo/" and "/*bar" (as a tail part).
-   *
-   * If this is unspecified and the `<Route>` has no children, acts like "/*".
-   * If the route has children, the default is "/" (i.e., pass through).
-   */
   path?: string;
-
-  // TODO: requires upgrading 'manageRouteChildren' into two categories
-  // /**
-  //  * If true, this route will only match within its parent if _no other_ routes matched before it.
-  //  */
-  // else?: boolean;
-
-  /**
-   * By default, the contained component will be recreated if the params here (e.g., "/:foo") change.
-   */
-  retainOnParamsChange?: boolean;
 
   /**
    * The component to render if this route is matched.
    *
-   * Children of the `<Route>` will always be rendered, but inside `<div hidden>`, even if not active.
-   * This might be fine for lazy/small routes, but not ones with complex behavior.
+   * This is not required; you can simply place the component inside your declarative router definition.
+   * The convenience here is that the children of the `<Route>` will automatically be slotted inside your component.
+   * This might be more urgonomic especially for "layout" components.
    */
   component?: Component;
 
   /**
    * If true, will only match the first direct descendant `<Route>`, not all valid ones.
-   *
-   * Not relevant for leaf routes without children.
    */
   matchFirst?: boolean;
+
+  /**
+   * By default, the contained component will be recreated if the params here (e.g., "/:foo") change.
+   * This is done by changing the "key" based on the params.
+   * This enables developers to be lazy: the values in `useParams` can be immutable, as if they change, the component will be unmounted/remounted.
+   *
+   * Set this to `true` to instead retain.
+   */
+  retainOnParamsChange?: boolean;
 }>();
 
-console.info('setup Route with props.path', props.path);
+const state = inject(routerStateKey);
 
-onBeforeMount(() => {
-  console.info('!@ beforeMounted Route with props.path', props.path);
+const match = computed<RouterState>(() => {
+  if (!state?.value) {
+    return defaultRouterState;
+  }
+
+  const s = state.value;
+  if (s.matched) {
+    // an earlier peer matched, don't even check
+    return defaultRouterState;
+  }
+
+  const out = matchPath(props.path || '', s.path);
+  if (!out.active) {
+    return out;
+  }
+
+  if (s.matched === false) {
+    // if this is `matchFirst`, s.matched will be explicitly false; we win, set true!
+    s.matched = true;
+  }
+
+  // for our descendants: the false tells someone to try to win (vs. undefined)
+  if (props.matchFirst) {
+    out.matched = false;
+  }
+
+  // this must occur before out.params below
+  if (props.retainOnParamsChange) {
+    out.keyParams = {};
+  } else if (out.params) {
+    out.keyParams = Object.assign({}, state.value.keyParams, out.params);
+  } else {
+    out.keyParams = state.value.keyParams;
+  }
+
+  // finally set global params
+  if (out.params) {
+    out.params = Object.assign({}, state.value.params, out.params);
+  } else {
+    out.params = state.value.params;
+  }
+
+  return out;
 });
 
-onMounted(() => {
-  console.info('!@ mounted Route with props.path', props.path);
+provide(routerStateKey, match);
+
+const key = computed(() => {
+  const kp = match.value.keyParams;
+  return kp
+    ? Object.entries(kp)
+        .map(([key, value]) => `${key}=${value}`)
+        .join(',')
+    : '';
 });
 
-onUnmounted(() => {
-  console.info('unmounted Route with props.path', props.path);
-});
+// TODO: It's not clear why we need to connect to parent - reasses later?
 
-const children = mangeRouteChildren();
-const matcher = computed(() => {
-  const defaultPath = children.size ? '/' : '/*';
-  return buildMatcher(props.path || defaultPath);
-});
+// const connectToParentRoute = inject(connectToParentRouteKey, () => {});
 
-// keep track of parent/local matched URL
-const parentUrl = inject(routerUrlKey)!;
-const localUrl = ref('');
-provide(routerUrlKey, localUrl);
+// const c = new AbortController();
+// onMounted(() => {
+//   connectToParentRoute?.(c.signal);
+// });
+// onUnmounted(() => c.abort());
 
-// keep track of parent/local params
-const parentParams = inject(routerParamsKey);
-const localParams = reactive({} as Record<string, { base: string; value: string }>);
-provide(routerParamsKey, localParams);
-
-const rs = inject(registerSelfKey);
-if (!rs || !parentUrl) {
-  throw new Error(`<Route> must only be used inside <Router>`);
-}
-
-const active = ref(false);
-const componentKey = ref('');
-
-// as our children change, re-register ourselves
-watchEffect((cleanup) => {
-  cleanup(
-    rs((path) => {
-      const m = path && matcher.value(path);
-      if (!m) {
-        if (!active.value) {
-          return false; // we weren't active, nothing to change
-        }
-
-        // sad "never match" path
-        for (const c of children) {
-          if (c('')) {
-            throw new Error(`should never match empty path`);
-          }
-        }
-        active.value = false;
-        return false;
-      }
-
-      // matched will always start with "/", so we can strip the trailing "/" (or only "/") from the parentUrl
-      const parentUrlValue = toValue(parentUrl);
-      localUrl.value = parentUrlValue.substring(0, parentUrlValue.length - 1) + m.matched;
-
-      // TODO: slow? maybe? do we care?
-      for (const k in localParams) {
-        delete localParams[k];
-      }
-      Object.assign(localParams, parentParams);
-      for (const k in m.params) {
-        localParams[k] = {
-          value: m.params[k].value,
-          base: parentUrlValue.substring(0, parentUrlValue.length - 1) + m.params[k].base,
-        };
-      }
-
-      // ensure change in params recreates component (TODO: configurable?)
-      if (props.retainOnParamsChange) {
-        componentKey.value = '';
-      } else {
-        componentKey.value = Object.entries(localParams)
-          .map(([key, value]) => `${key}=${value}`)
-          .join(',');
-      }
-
-      // if we don't have children, only we can be active (exact match)
-      if (!children.size) {
-        const out = Boolean(m?.rest === '/');
-        // if (out) {
-        //   console.debug('self active, wasActive=', active.value);
-        // }
-        active.value = out;
-        return out;
-      }
-
-      // we match but have children; need a child to agree
-      // TODO: what is the normal behavior here? fail?
-      let rest = m.rest;
-      let found = false;
-      // console.debug('cheecking children of', props.path, '||', children.size ? '/' : '/*');
-      for (const c of children) {
-        if (c(rest)) {
-          found = true;
-          // console.debug('found child match for', rest, 'was active?', active.value);
-
-          if (props.matchFirst) {
-            rest = '';
-          }
-        }
-      }
-      active.value = found;
-      return found;
-    }),
-  );
-});
-
-// When we mount, we call our parent Route to basically say "here I am, I want to be in the running".
-// Once we unmount, we deregister ourselves from that.
-// TODO: ordering?
-
-const display = computed(() => {
-  return active.value ? props.component || RouterShow : undefined;
-});
-
-// TODO: This is trying to deal with: if our rendered component doesn't have a <slot>, can we still render stuff.
-// ...(ofc it needs <slot> for provide() and friends to work)
-//  - we can't just include <slot></slot> twice: the content is rendered in both places *brain asplode*
-// const slotRef = useTemplateRef('slotRef');
-// watchEffect(() => {
-//   console.info('route', props.path, 'got slotRef', slotRef.value);
+// let childCount = 0;
+// provide(connectToParentRouteKey, (signal) => {
+//   if (signal.aborted) {
+//     return;
+//   }
+//   childCount++;
+//   console.debug('route', props.path, 'got childCount', childCount);
+//   signal.addEventListener('abort', () => {
+//     --childCount;
+//     console.debug('route', props.path, 'dec childCount', childCount);
+//   });
 // });
 </script>
 
 <template>
-  <template v-if="active">
-    <display :key="componentKey">
-      <slot></slot>
-    </display>
-  </template>
-  <template v-else>
-    <!-- <div hidden>
-      <slot></slot>
-    </div> -->
+  <template v-if="match.active">
+    <template v-if="props.component">
+      <props.component :key="key">
+        <slot></slot>
+      </props.component>
+    </template>
+    <template v-else>
+      <slot :key="key"></slot>
+    </template>
   </template>
 </template>

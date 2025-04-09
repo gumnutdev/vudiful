@@ -4,7 +4,6 @@ const splitRoute = (x: string): string[] => {
   if (x === '/' || !x) {
     return [];
   }
-
   const parts = x.split('/');
   parts.pop();
   parts.shift();
@@ -15,7 +14,6 @@ const assembleRoute = (x: string[]) => {
   if (!x.length) {
     return '/';
   }
-
   return '/' + x.join('/') + '/';
 };
 
@@ -34,17 +32,21 @@ export function matchPath(propsPath: string, routerPath: string): RouterState {
 
   const propsParts = splitRoute(propsPath);
   const routerParts = splitRoute(routerPath);
-
-  //  console.info('cmp', { propsParts, routerParts });
+  const propsPartsLength = propsParts.length;
 
   let params: Record<string, string> | undefined;
 
-  for (let i = 0; i < propsParts.length; ++i) {
+  for (let i = 0; i < propsPartsLength; ++i) {
+    const controlCode = propsParts[i][0];
     if (i === routerParts.length) {
+      if (controlCode === '?') {
+        break; // optinal; don't need to match more
+      }
       return defaultRouterState;
     }
 
-    switch (propsParts[i][0]) {
+    switch (controlCode) {
+      case '?':
       case ':': {
         const key = propsParts[i].substring(1);
         params ??= {};
@@ -58,10 +60,9 @@ export function matchPath(propsPath: string, routerPath: string): RouterState {
     }
   }
 
-  const l = propsParts.length;
   return {
-    path: assembleRoute(routerParts.slice(l)),
-    nest: assembleRoute(routerParts.slice(0, l)),
+    path: assembleRoute(routerParts.slice(propsPartsLength)),
+    nest: assembleRoute(routerParts.slice(0, propsPartsLength)),
     active: true,
     params,
   };
