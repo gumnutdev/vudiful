@@ -1,11 +1,19 @@
 <script setup lang="ts">
 import { Router, Route, Link } from '../src/index';
-import { ref } from 'vue';
+import { ref, useTemplateRef } from 'vue';
 import DemoComponent from './DemoComponent.vue';
 import WrapComponent from './WrapComponent.vue';
+import PRoute from '../src/PRoute.vue';
 
 const matchFirst = ref(true);
 const toggleMatchFirst = () => (matchFirst.value = !matchFirst.value);
+
+const textRef = useTemplateRef('textRef');
+const handleGoto = (e: Event) => {
+  e.preventDefault();
+  history.pushState(null, '', textRef.value?.value || '/');
+  window.dispatchEvent(new CustomEvent('popstate')); // trigger our own listener
+};
 </script>
 
 <template>
@@ -14,38 +22,38 @@ const toggleMatchFirst = () => (matchFirst.value = !matchFirst.value);
   <button @click="toggleMatchFirst">Toggle</button>
 
   <Router>
-    <Route path="a" :match-first="matchFirst">
-      <Link href="b/c/d">To b/c/d</Link><br />
-      <Link href="b/something/d">To b/something/d</Link><br />
+    <Route match-first comment="Top">
+      Top-level whatever
 
-      <Route path="b">
-        <DemoComponent />
+      <Route path="/createProject">
+        Create Project
+        <Link href="../">Goto top</Link>
+      </Route>
 
-        <Link href="zing" active-class="red" nested-class="blue">Zing!</Link><br />
-
-        Nested under B
-        <Route path="?anything" :component="WrapComponent">
-          <DemoComponent />
-          <Route path="d">
-            <DemoComponent />
-            <Link href="zing">Under D no key</Link><br />
-            <Link href="zing" root="anything">Under D with key</Link><br />
-          </Route>
+      <Route sub-match comment="Sub match doohickey">
+        Zero sth
+        <Route path="/extra">Something a little extra</Route>
+        <Route path="/complex">
+          Default
+          <Link href="../createProject">Goto createProject</Link>
         </Route>
       </Route>
 
-      <Route> Nested under A </Route>
-      <Route> Extra nested under A </Route>
-    </Route>
-
-    <Route path="x/*what">
-      Default X route
-      <Link href="/x-zing">XZing rooted</Link><br />
-      <Link href="./x-zing">XZing</Link>
-
-      <DemoComponent />
+      <Route path="/*"> Rest </Route>
     </Route>
   </Router>
+
+  <form>
+    <input type="text" ref="textRef" />
+    <button @click="handleGoto">Goto</button>
+  </form>
+
+  <PRoute>
+    <PRoute>
+      <PRoute></PRoute>
+      <PRoute></PRoute>
+    </PRoute>
+  </PRoute>
 </template>
 
 <style>

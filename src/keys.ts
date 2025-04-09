@@ -1,4 +1,4 @@
-import type { InjectionKey, Ref } from 'vue';
+import type { InjectionKey, Reactive, Ref, ShallowReactive } from 'vue';
 
 export type RouterState = {
   path: string;
@@ -17,8 +17,24 @@ export type RouterState = {
 
   paramsBase?: Record<string, string>;
 
+  matched?: Reactive<Set<MatchState>>;
+  poke?: Ref<number>;
+};
+
+export type MatchState = {
   matched?: boolean;
+  display: boolean;
 };
 
 export const routerStateKey = Symbol('routerState') as InjectionKey<Ref<RouterState>>;
 export const defaultRouterState = Object.freeze({ path: '', nest: '/' } as RouterState);
+
+export type SomeState = {
+  r: number;
+};
+
+export type Container = {
+  children?: Reactive<Set<SomeState>>;
+};
+
+export const prouteStateKey = Symbol('proute') as InjectionKey<Container>;
