@@ -5,6 +5,12 @@ import { hrefIsRemote } from './helpers';
 
 const props = defineProps<{
   href?: string;
+
+  /**
+   * If specified, roots this href at the location where we found the named key (like ":key" or "?key").
+   */
+  root?: string;
+
   // activeClass?: string;
   // nestedClass?: string;
   // paramRoot?: string;
@@ -17,8 +23,19 @@ const href = computed(() => {
     return '';
   }
 
+  let base: string;
+  if (props.root) {
+    const paramBase = state.value.paramsBase?.[props.root];
+    if (paramBase === undefined) {
+      return '/';
+    }
+    base = paramBase;
+  } else {
+    base = state.value.nest;
+  }
+
   const u = new URL('http://localhost'); // use URL for its computing ability
-  u.pathname = state.value.nest + props.href;
+  u.pathname = base + props.href;
 
   return u.pathname;
 });

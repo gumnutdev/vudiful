@@ -15,7 +15,7 @@ watchEffect((cleanup) => {
   cleanup(() => c.abort());
 
   const update = () => {
-    r.value = { path: ensureTrailingSlash(window.location.pathname), nest: '' };
+    r.value = { path: ensureTrailingSlash(window.location.pathname), nest: '/' };
   };
   update();
   window.addEventListener('popstate', update, { signal: c.signal });
@@ -46,6 +46,8 @@ provide(routerStateKey, r);
         <DemoComponent />
         <Route path="d">
           <DemoComponent />
+          <Link href="zing">Under D no key</Link><br />
+          <Link href="zing" root="anything">Under D with key</Link><br />
         </Route>
       </Route>
     </Route>
@@ -55,7 +57,8 @@ provide(routerStateKey, r);
   </Route>
 
   <Route path="x/*what">
-    Default route
+    Default X route
+    <Link href="zing">Zing</Link>
 
     <DemoComponent />
   </Route>

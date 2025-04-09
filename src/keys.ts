@@ -15,6 +15,8 @@ export type RouterState = {
    */
   keyParams?: Record<string, string>;
 
+  paramsBase?: Record<string, string>;
+
   matched?: boolean;
 };
 

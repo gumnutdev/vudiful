@@ -34,6 +34,7 @@ export function matchPath(propsPath: string, routerPath: string): RouterState {
   const routerParts = splitRoute(routerPath);
   let propsPartsLength = propsParts.length;
 
+  let paramsBase: Record<string, string> | undefined;
   let params: Record<string, string> | undefined;
 
   outer: for (let i = 0; i < propsPartsLength; ++i) {
@@ -51,6 +52,8 @@ export function matchPath(propsPath: string, routerPath: string): RouterState {
         const key = propsParts[i].substring(1);
         params ??= {};
         params[key] = routerParts[i];
+        paramsBase ??= {};
+        paramsBase[key] = assembleRoute(routerParts.slice(0, i));
         continue;
       }
 
@@ -58,6 +61,8 @@ export function matchPath(propsPath: string, routerPath: string): RouterState {
         const key = propsParts[i].substring(1);
         params ??= {};
         params[key] = routerParts.slice(i).join('/');
+        paramsBase ??= {};
+        paramsBase[key] = assembleRoute(routerParts.slice(0, i));
         propsPartsLength = i;
         break outer;
       }
@@ -73,6 +78,7 @@ export function matchPath(propsPath: string, routerPath: string): RouterState {
     nest: assembleRoute(routerParts.slice(0, propsPartsLength)),
     active: true,
     params,
+    paramsBase,
   };
 }
 

@@ -70,8 +70,16 @@ const match = computed<RouterState>(() => {
   // finally set global params
   if (out.params) {
     out.params = Object.assign({}, state.value.params, out.params);
+
+    const matchedParamsBase = out.paramsBase;
+    out.paramsBase = Object.assign({}, state.value.paramsBase);
+
+    for (const key in matchedParamsBase) {
+      out.paramsBase[key] = state.value.nest + matchedParamsBase[key].substring(1);
+    }
   } else {
     out.params = state.value.params;
+    out.paramsBase = state.value.paramsBase;
   }
 
   out.nest = state.value.nest + out.nest.substring(1);
