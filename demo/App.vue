@@ -6,6 +6,7 @@ import Link2 from '../src/Link2.vue';
 import { defaultRouterState, type RouterState, routerStateKey } from '../src/keys';
 import { ensureTrailingSlash } from '../src/shared';
 import DemoComponent from './DemoComponent.vue';
+import WrapComponent from './WrapComponent.vue';
 
 const r = ref<RouterState>(defaultRouterState);
 
@@ -39,7 +40,7 @@ provide(routerStateKey, r);
       <DemoComponent />
 
       Nested under B
-      <Route2 path=":anything">
+      <Route2 path=":anything" :component="WrapComponent">
         <DemoComponent />
         <Route2 path="d">
           <DemoComponent />

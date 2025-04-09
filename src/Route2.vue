@@ -1,10 +1,19 @@
 <script lang="ts" setup>
-import { computed, inject, provide } from 'vue';
+import { type Component, computed, inject, provide } from 'vue';
 import { defaultRouterState, type RouterState, routerStateKey } from './keys';
 import { matchPath } from './helpers';
 
 const props = defineProps<{
   path?: string;
+
+  /**
+   * The component to render if this route is matched.
+   *
+   * This is not required; you can simply place the component inside your declarative router definition.
+   * The convenience here is that the children of the `<Route>` will automatically be slotted inside your component.
+   * This might be more urgonomic especially for "layout" components.
+   */
+  component?: Component;
 
   /**
    * If true, will only match the first direct descendant `<Route>`, not all valid ones.
@@ -71,11 +80,12 @@ const match = computed<RouterState>(() => {
 provide(routerStateKey, match);
 
 const key = computed(() => {
-  return Object.entries(match.value.keyParams ?? {})
-    .map(([key, value]) => {
-      return `${key}=${value}`;
-    })
-    .join(',');
+  const kp = match.value.keyParams;
+  return kp
+    ? Object.entries(kp)
+        .map(([key, value]) => `${key}=${value}`)
+        .join(',')
+    : '';
 });
 
 // TODO: It's not clear why we need to connect to parent - reasses later?
@@ -103,5 +113,14 @@ const key = computed(() => {
 </script>
 
 <template>
-  <template v-if="match.active"><slot :key="key"></slot></template>
+  <template v-if="match.active">
+    <template v-if="props.component">
+      <props.component :key="key">
+        <slot></slot>
+      </props.component>
+    </template>
+    <template v-else>
+      <slot :key="key"></slot>
+    </template>
+  </template>
 </template>
