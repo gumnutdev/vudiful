@@ -17,6 +17,16 @@ const assembleRoute = (x: string[]) => {
   return '/' + x.join('/') + '/';
 };
 
+const splitPart = (part: string) => {
+  switch (part[0]) {
+    case '?':
+    case ':':
+    case '*':
+      return { controlCode: part[0], rest: part.substring(1) };
+  }
+  return { controlCode: '', rest: part };
+};
+
 export function matchPath(propsPath: string, routerPath: string): RouterState {
   if (!routerPath.endsWith('/')) {
     return defaultRouterState;
@@ -38,9 +48,12 @@ export function matchPath(propsPath: string, routerPath: string): RouterState {
   let params: Record<string, string> | undefined;
 
   outer: for (let i = 0; i < propsPartsLength; ++i) {
-    const controlCode = propsParts[i][0];
+    const { controlCode, rest } = splitPart(propsParts[i]);
+
     if (i === routerParts.length) {
       if (controlCode === '?') {
+        paramsBase ??= {};
+        paramsBase[rest] = assembleRoute(routerParts.slice(0, i));
         break; // optional; don't need to match more
       }
       return defaultRouterState;
@@ -49,20 +62,18 @@ export function matchPath(propsPath: string, routerPath: string): RouterState {
     switch (controlCode) {
       case '?':
       case ':': {
-        const key = propsParts[i].substring(1);
         params ??= {};
-        params[key] = routerParts[i];
         paramsBase ??= {};
-        paramsBase[key] = assembleRoute(routerParts.slice(0, i));
+        params[rest] = routerParts[i];
+        paramsBase[rest] = assembleRoute(routerParts.slice(0, i));
         continue;
       }
 
       case '*': {
-        const key = propsParts[i].substring(1);
         params ??= {};
-        params[key] = routerParts.slice(i).join('/');
         paramsBase ??= {};
-        paramsBase[key] = assembleRoute(routerParts.slice(0, i));
+        params[rest] = routerParts.slice(i).join('/');
+        paramsBase[rest] = assembleRoute(routerParts.slice(0, i));
         propsPartsLength = i;
         break outer;
       }
@@ -72,7 +83,6 @@ export function matchPath(propsPath: string, routerPath: string): RouterState {
       return defaultRouterState;
     }
   }
-
   return {
     path: assembleRoute(routerParts.slice(propsPartsLength)),
     nest: assembleRoute(routerParts.slice(0, propsPartsLength)),
