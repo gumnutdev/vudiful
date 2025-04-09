@@ -1,4 +1,4 @@
-import { toValue, type MaybeRef } from 'vue';
+import { Ref, toValue, type MaybeRef } from 'vue';
 import { defaultRouterState, type RouterState } from './keys.ts';
 
 const splitRoute = (x: string): string[] => {
@@ -139,4 +139,32 @@ export const gotoHref = (hrefRef: MaybeRef<string | undefined>, e?: MouseEvent) 
 
   window.history.pushState(null, '', href);
   window.dispatchEvent(new CustomEvent('popstate')); // trigger our own listener
+};
+
+export const determineClass = (arg: {
+  href: Ref<string | undefined>;
+  state?: RouterState;
+  activeClass?: string;
+  nestedClass?: string;
+}): string | undefined => {
+  if (!arg.state || (!arg.activeClass && !arg.nestedClass)) {
+    return;
+  }
+  const valueHref = toValue(arg.href);
+  if (valueHref === undefined) {
+    return;
+  }
+
+  const checkHref = ensureTrailingSlash(valueHref);
+  const total = arg.state.nest + arg.state.path.substring(1);
+
+  console.info('runnig determienClass', arg, { checkHref, total });
+
+  if (arg.activeClass !== undefined && total === checkHref) {
+    return arg.activeClass;
+  } else if (total.startsWith(checkHref)) {
+    return arg.nestedClass;
+  }
+
+  return undefined;
 };

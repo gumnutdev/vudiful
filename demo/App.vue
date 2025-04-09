@@ -38,7 +38,7 @@ provide(routerStateKey, r);
     <Route path="b">
       <DemoComponent />
 
-      <Link href="zing">Zing</Link><br />
+      <Link href="zing" active-class="red" nested-class="blue">Zing!</Link><br />
 
       Nested under B
       <Route path="?anything" :component="WrapComponent">
@@ -75,3 +75,12 @@ provide(routerStateKey, r);
     </Route>
   </Router> -->
 </template>
+
+<style>
+.red {
+  background: red;
+}
+.blue {
+  background: blue;
+}
+</style>
