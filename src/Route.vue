@@ -74,6 +74,7 @@ const match = computed<RouterState>(() => {
     out.params = state.value.params;
   }
 
+  out.nest = state.value.nest + out.nest.substring(1);
   return out;
 });
 

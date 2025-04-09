@@ -32,11 +32,11 @@ export function matchPath(propsPath: string, routerPath: string): RouterState {
 
   const propsParts = splitRoute(propsPath);
   const routerParts = splitRoute(routerPath);
-  const propsPartsLength = propsParts.length;
+  let propsPartsLength = propsParts.length;
 
   let params: Record<string, string> | undefined;
 
-  for (let i = 0; i < propsPartsLength; ++i) {
+  outer: for (let i = 0; i < propsPartsLength; ++i) {
     const controlCode = propsParts[i][0];
     if (i === routerParts.length) {
       if (controlCode === '?') {
@@ -52,6 +52,14 @@ export function matchPath(propsPath: string, routerPath: string): RouterState {
         params ??= {};
         params[key] = routerParts[i];
         continue;
+      }
+
+      case '*': {
+        const key = propsParts[i].substring(1);
+        params ??= {};
+        params[key] = routerParts.slice(i).join('/');
+        propsPartsLength = i;
+        break outer;
       }
     }
 

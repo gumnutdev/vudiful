@@ -39,6 +39,8 @@ provide(routerStateKey, r);
     <Route path="b">
       <DemoComponent />
 
+      <Link href="zing">Zing</Link>
+
       Nested under B
       <Route path="?anything" :component="WrapComponent">
         <DemoComponent />
@@ -50,6 +52,12 @@ provide(routerStateKey, r);
 
     <Route> Nested under A </Route>
     <Route> Extra nested under A </Route>
+  </Route>
+
+  <Route path="x/*what">
+    Default route
+
+    <DemoComponent />
   </Route>
 
   <!-- <Router>
