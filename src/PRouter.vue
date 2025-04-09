@@ -1,7 +1,11 @@
 <script lang="ts" setup>
 import { provide, reactive, watchEffect } from 'vue';
 import { prouteStateKey, SomeState } from './keys.ts';
-import { ensureTrailingSlash } from './helpers.ts';
+import { applyDisplayMatch, ensureTrailingSlash } from './helpers.ts';
+
+const props = defineProps<{
+  matchAll?: boolean;
+}>();
 
 const state = reactive({
   children: new Set<SomeState>(),
@@ -23,10 +27,7 @@ watchEffect((cleanup) => {
 });
 
 watchEffect(() => {
-  const children = [...state.children];
-  for (const c of children) {
-    c.display = c.match;
-  }
+  applyDisplayMatch([...state.children], props.matchAll);
 });
 </script>
 

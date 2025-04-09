@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { inject, onUnmounted, provide, reactive, watchEffect } from 'vue';
 import { prouteStateKey, type SomeState } from './keys';
-import { matchPath } from './helpers';
+import { applyDisplayMatch, matchPath } from './helpers';
 
 // nb. uses long-form syntax so we can get `undefined` explicitly
 const props = defineProps({
@@ -97,18 +97,7 @@ watchEffect(() => {
     reactiveSelf.match = reactiveSelf.pathMatch && anyChildMatch;
   }
 
-  if (props.matchAll) {
-    // display <= match
-    for (const c of children) {
-      c.display = c.match;
-    }
-  } else {
-    // display <= only first match
-    const firstMatch = children.findIndex(({ match }) => match);
-    for (let i = 0; i < children.length; ++i) {
-      children[i].display = firstMatch === i;
-    }
-  }
+  applyDisplayMatch(children, props.matchAll);
 });
 
 provide(prouteStateKey, ourState);

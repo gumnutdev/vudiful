@@ -170,3 +170,21 @@ export const determineClass = (arg: {
 
   return undefined;
 };
+
+export function applyDisplayMatch(
+  children: { match?: boolean; display?: boolean }[],
+  matchAll?: boolean,
+) {
+  if (matchAll) {
+    // display <= match
+    for (const c of children) {
+      c.display = c.match ?? false;
+    }
+  } else {
+    // display <= only first match
+    const firstMatch = children.findIndex(({ match }) => match);
+    for (let i = 0; i < children.length; ++i) {
+      children[i].display = firstMatch === i;
+    }
+  }
+}
