@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { Router, Route, Link } from '../src/index';
 import { ref, useTemplateRef } from 'vue';
 import DemoComponent from './DemoComponent.vue';
 import WrapComponent from './WrapComponent.vue';
 import PRoute from '../src/PRoute.vue';
+import PRouter from '../src/PRouter.vue';
 
 const matchFirst = ref(true);
 const toggleMatchFirst = () => (matchFirst.value = !matchFirst.value);
@@ -21,7 +21,7 @@ const handleGoto = (e: Event) => {
 
   <button @click="toggleMatchFirst">Toggle</button>
 
-  <Router>
+  <!-- <Router>
     <Route match-first comment="Top">
       Top-level whatever
 
@@ -41,19 +41,30 @@ const handleGoto = (e: Event) => {
 
       <Route path="/*"> Rest </Route>
     </Route>
-  </Router>
+  </Router> -->
 
   <form>
     <input type="text" ref="textRef" />
     <button @click="handleGoto">Goto</button>
   </form>
 
-  <PRoute>
+  <PRouter>
     <PRoute>
-      <PRoute></PRoute>
-      <PRoute></PRoute>
+      <PRoute path="/extra/">
+        <PRoute path="1" sub-match match-first>
+          <PRoute path="2"><strong>First</strong></PRoute>
+          <PRoute path="2"><strong>Second</strong></PRoute>
+          <PRoute path="2a" sub-match>
+            <PRoute path="3"></PRoute>
+          </PRoute>
+        </PRoute>
+      </PRoute>
+      <PRoute path="not-extra"></PRoute>
+      <PRoute path="not-extra-123">
+        <PRoute path="sub-extra"></PRoute>
+      </PRoute>
     </PRoute>
-  </PRoute>
+  </PRouter>
 </template>
 
 <style>

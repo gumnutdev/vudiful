@@ -1,5 +1,5 @@
 import { Ref, toValue, type MaybeRef } from 'vue';
-import { defaultRouterState, type RouterState } from './keys.ts';
+import { defaultMatchResult, type MatchResult } from './keys.ts';
 
 const splitRoute = (x: string): string[] => {
   if (x === '/' || !x) {
@@ -28,9 +28,9 @@ const splitPart = (part: string) => {
   return { controlCode: '', rest: part };
 };
 
-export function matchPath(propsPath: string, routerPath: string): RouterState {
+export function matchPath(propsPath: string, routerPath: string): MatchResult {
   if (!routerPath.endsWith('/')) {
-    return defaultRouterState;
+    return defaultMatchResult;
   }
 
   // TODO: hasChildren?
@@ -57,7 +57,7 @@ export function matchPath(propsPath: string, routerPath: string): RouterState {
         paramsBase[rest] = assembleRoute(routerParts.slice(0, i));
         break; // optional; don't need to match more
       }
-      return defaultRouterState;
+      return defaultMatchResult;
     }
 
     switch (controlCode) {
@@ -81,13 +81,13 @@ export function matchPath(propsPath: string, routerPath: string): RouterState {
     }
 
     if (propsParts[i] !== routerParts[i]) {
-      return defaultRouterState;
+      return defaultMatchResult;
     }
   }
   return {
     path: assembleRoute(routerParts.slice(propsPartsLength)),
     nest: assembleRoute(routerParts.slice(0, propsPartsLength)),
-    active: true,
+    matched: true,
     params,
     paramsBase,
   };
@@ -98,7 +98,7 @@ export const hrefIsRemote = (href?: string) =>
 
 export const ensureTrailingSlash = (href: string) => (href.endsWith('/') ? href : href + '/');
 
-export const mergeHref = (arg: { href?: string; state?: RouterState; root?: string }) => {
+export const mergeHref = (arg: { href?: string; state?: MatchResult; root?: string }) => {
   if (!arg.href || arg.href.startsWith('/')) {
     return arg.href;
   }
@@ -143,7 +143,7 @@ export const gotoResolvedHref = (hrefRef: MaybeRef<string | undefined>, e?: Mous
 
 export const determineClass = (arg: {
   href: Ref<string | undefined>;
-  state?: RouterState;
+  state?: MatchResult;
   activeClass?: string;
   nestedClass?: string;
 }): string | undefined => {
