@@ -40,7 +40,7 @@ export function matchPath(propsPath: string, routerPath: string): RouterState {
     const controlCode = propsParts[i][0];
     if (i === routerParts.length) {
       if (controlCode === '?') {
-        break; // optinal; don't need to match more
+        break; // optional; don't need to match more
       }
       return defaultRouterState;
     }
