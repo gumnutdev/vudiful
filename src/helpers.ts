@@ -1,3 +1,4 @@
+import { toValue, type MaybeRef } from 'vue';
 import { defaultRouterState, type RouterState } from './keys.ts';
 
 const splitRoute = (x: string): string[] => {
@@ -92,5 +93,50 @@ export function matchPath(propsPath: string, routerPath: string): RouterState {
   };
 }
 
-export const hrefIsRemote = (href: string) =>
-  href.startsWith('http://') || href.startsWith('https://');
+export const hrefIsRemote = (href?: string) =>
+  href ? href.startsWith('http://') || href.startsWith('https://') : false;
+
+export const ensureTrailingSlash = (href: string) => (href.endsWith('/') ? href : href + '/');
+
+export const mergeHref = (arg: { href?: string; state?: RouterState; root?: string }) => {
+  if (!arg.href || arg.href.startsWith('/')) {
+    return arg.href;
+  }
+
+  if (!arg.state) {
+    return '';
+  }
+
+  let base: string;
+  if (arg.root !== undefined) {
+    const paramBase = arg.state.paramsBase?.[arg.root];
+    if (paramBase === undefined) {
+      return '/';
+    }
+    base = paramBase;
+  } else {
+    base = arg.state.nest;
+  }
+
+  const u = new URL('http://localhost'); // use URL for its computing ability
+  u.pathname = base + arg.href;
+
+  return u.pathname;
+};
+
+export const gotoHref = (hrefRef: MaybeRef<string | undefined>, e?: MouseEvent) => {
+  const href = toValue(hrefRef);
+
+  if (e) {
+    if (hrefIsRemote(href) || e.metaKey || e.altKey || e.shiftKey) {
+      return;
+    }
+    e.preventDefault();
+  } else if (hrefIsRemote(href)) {
+    window.location.href = href!;
+    return;
+  }
+
+  window.history.pushState(null, '', href);
+  window.dispatchEvent(new CustomEvent('popstate')); // trigger our own listener
+};

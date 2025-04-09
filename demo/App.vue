@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import Route from '../src/Route.vue';
-
 import { provide, ref, watchEffect } from 'vue';
 import Link from '../src/Link.vue';
 import { defaultRouterState, type RouterState, routerStateKey } from '../src/keys';
-import { ensureTrailingSlash } from '../src/shared';
 import DemoComponent from './DemoComponent.vue';
 import WrapComponent from './WrapComponent.vue';
+import { ensureTrailingSlash } from '../src/helpers';
 
 const r = ref<RouterState>(defaultRouterState);
 
@@ -39,7 +38,7 @@ provide(routerStateKey, r);
     <Route path="b">
       <DemoComponent />
 
-      <Link href="zing">Zing</Link>
+      <Link href="zing">Zing</Link><br />
 
       Nested under B
       <Route path="?anything" :component="WrapComponent">
@@ -58,7 +57,8 @@ provide(routerStateKey, r);
 
   <Route path="x/*what">
     Default X route
-    <Link href="zing">Zing</Link>
+    <Link href="/x-zing">XZing rooted</Link><br />
+    <Link href="./x-zing">XZing</Link>
 
     <DemoComponent />
   </Route>

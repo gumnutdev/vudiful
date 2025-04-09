@@ -1,4 +1,4 @@
-import { computed, inject, type InjectionKey, type Ref } from 'vue';
+import type { InjectionKey, Ref } from 'vue';
 
 export type RouterState = {
   path: string;
@@ -21,16 +21,4 @@ export type RouterState = {
 };
 
 export const routerStateKey = Symbol('routerState') as InjectionKey<Ref<RouterState>>;
-
-export const defaultRouterState = Object.freeze({ path: '', nest: '' } as RouterState);
-
-export type ConnectToParentRoute = (signal: AbortSignal) => void;
-export const connectToParentRouteKey = Symbol('parentRoute') as InjectionKey<ConnectToParentRoute>;
-
-export const useParams = () => {
-  const state = inject(routerStateKey);
-
-  return computed(() => {
-    return state?.value.params ?? {};
-  });
-};
+export const defaultRouterState = Object.freeze({ path: '', nest: '/' } as RouterState);
