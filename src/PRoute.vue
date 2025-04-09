@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { inject, onUnmounted, provide, reactive, watchEffect } from 'vue';
+import { computed, inject, onUnmounted, provide, reactive, watchEffect } from 'vue';
 import { prouteStateKey, SomeState } from './keys';
 import { matchPath } from './helpers';
 
@@ -7,16 +7,17 @@ const props = defineProps<{
   path?: string;
 
   /**
-   * If true, we will not render unless at least of our children is rendering.
-   * This can be combined with `matchFirst`.
-   * This forces our children to render (inside `<div hidden>`) in order to determine their validity.
+   * Normally, if this `<Route>` has children, it will not match unless a child matches.
+   *
+   * Set this to display the `<Route>` regardless.
+   * This has no effect if the `<Route>` has no children.
    */
-  subMatch?: boolean;
+  matchSelf?: boolean;
 
   /**
-   * Only render the first match among our children.
+   * Render all subordinate routes that match, not just the first.
    */
-  matchFirst?: boolean;
+  matchAll?: boolean;
 }>();
 
 const reactiveSelf = reactive<SomeState>({
@@ -58,33 +59,27 @@ watchEffect(() => {
   ourState.nest = parentState.nest + matchOut.nest.substring(1);
 
   const children = [...ourState.children];
-  const anyChildMatch = children.some(({ match }) => match);
 
   reactiveSelf.pathMatch = matchOut.matched;
-  if (props.subMatch) {
-    reactiveSelf.match = anyChildMatch;
-  } else {
+  if (props.matchSelf) {
     reactiveSelf.match = reactiveSelf.pathMatch;
-    // console.info('got regular model', ourState.children.size);
-    // reactiveSelf.localMatch = !ourState.children.size;
+  } else {
+    const anyChildMatch = children.some(({ match }) => match) || !children.length;
+    reactiveSelf.match = reactiveSelf.pathMatch && anyChildMatch;
   }
 
-  reactiveSelf.hasExcessPath = ourState.path !== '/' && !anyChildMatch;
+  //  reactiveSelf.hasExcessPath = ourState.path !== '/' && !anyChildMatch;
 
-  if (props.matchFirst) {
-    let found = false;
-    for (const c of children) {
-      const { match } = c;
-      if (!found && match) {
-        c.display = true;
-        found = true;
-      } else {
-        c.display = false;
-      }
-    }
-  } else {
+  if (props.matchAll) {
+    // display <= match
     for (const c of children) {
       c.display = c.match;
+    }
+  } else {
+    // display <= only first match
+    const firstMatch = children.findIndex(({ match }) => match);
+    for (let i = 0; i < children.length; ++i) {
+      children[i].display = firstMatch === i;
     }
   }
 });
@@ -93,21 +88,34 @@ provide(prouteStateKey, ourState);
 </script>
 
 <template>
-  <div style="border: 2px solid red; margin: 8px">
-    Should I display={{ reactiveSelf.display && !reactiveSelf.hasExcessPath }}<br />
+  <div
+    :style="`border: 2px solid ${
+      reactiveSelf.display ? 'green; background: #afa5' : 'red; background: #faa5'
+    }; margin: 8px`"
+  >
+    Should I display={{ reactiveSelf.display }}<br />
     My path={{ props.path }}<br />
-    My local view on being active={{ reactiveSelf.match }}<br />
+    My local view match={{ reactiveSelf.match }} pathMatch={{ reactiveSelf.pathMatch }}<br />
     <template v-if="ourState.children.size">
       My children's states={{ [...ourState.children].map((x) => x.match).join(',') }}<br />
     </template>
 
-    <template v-if="reactiveSelf.display && !reactiveSelf.hasExcessPath">
-      <slot></slot>
-    </template>
-    <template v-else-if="reactiveSelf.pathMatch">
-      <div style="opacity: 0.5">
+    <template v-if="reactiveSelf.display || reactiveSelf.pathMatch">
+      <div :class="'router-manager ' + (reactiveSelf.display ? 'display' : 'ambig')">
         <slot></slot>
       </div>
     </template>
   </div>
 </template>
+
+<style scoped>
+.router-manager {
+  display: block;
+}
+.router-manager.display {
+  display: contents;
+}
+.router-manager.ambig {
+  opacity: 0.5;
+}
+</style>

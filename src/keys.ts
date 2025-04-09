@@ -36,9 +36,10 @@ export type SomeState = {
   match?: boolean;
   pathMatch?: boolean;
 
+  /**
+   * Controlled by the parent: should this display.
+   */
   display?: boolean;
-
-  hasExcessPath?: boolean;
 };
 
 export type PRouteState = {
