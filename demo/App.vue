@@ -5,6 +5,7 @@ import { provide, ref, watchEffect } from 'vue';
 import Link2 from '../src/Link2.vue';
 import { defaultRouterState, type RouterState, routerStateKey } from '../src/keys';
 import { ensureTrailingSlash } from '../src/shared';
+import DemoComponent from './DemoComponent.vue';
 
 const r = ref<RouterState>(defaultRouterState);
 
@@ -31,12 +32,18 @@ provide(routerStateKey, r);
   <button @click="toggleMatchFirst">Toggle</button>
 
   <Route2 path="a" :match-first="matchFirst">
-    <Link2 href="b/c">To b/c</Link2>
+    <Link2 href="b/c/d">To b/c/d</Link2><br />
+    <Link2 href="b/something/d">To b/something/d</Link2><br />
 
     <Route2 path="b">
+      <DemoComponent />
+
       Nested under B
-      <Route2 path="c">
-        <Route2 path="d"> Within D </Route2>
+      <Route2 path=":anything">
+        <DemoComponent />
+        <Route2 path="d">
+          <DemoComponent />
+        </Route2>
       </Route2>
     </Route2>
 

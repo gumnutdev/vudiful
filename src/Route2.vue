@@ -10,6 +10,15 @@ const props = defineProps<{
    * If true, will only match the first direct descendant `<Route>`, not all valid ones.
    */
   matchFirst?: boolean;
+
+  /**
+   * By default, the contained component will be recreated if the params here (e.g., "/:foo") change.
+   * This is done by changing the "key" based on the params.
+   * This enables developers to be lazy: the values in `useParams` can be immutable, as if they change, the component will be unmounted/remounted.
+   *
+   * Set this to `true` to instead retain.
+   */
+  retainOnParamsChange?: boolean;
 }>();
 
 const state = inject(routerStateKey);
@@ -26,8 +35,11 @@ const match = computed<RouterState>(() => {
   }
 
   const out = matchPath(props.path || '', s.path);
+  if (!out.active) {
+    return out;
+  }
 
-  if (out.active && s.matched === false) {
+  if (s.matched === false) {
     // if this is `matchFirst`, s.matched will be explicitly false; we win, set true!
     s.matched = true;
   }
@@ -36,10 +48,35 @@ const match = computed<RouterState>(() => {
   if (props.matchFirst) {
     out.matched = false;
   }
+
+  // this must occur before out.params below
+  if (props.retainOnParamsChange) {
+    out.keyParams = {};
+  } else if (out.params) {
+    out.keyParams = Object.assign({}, state.value.keyParams, out.params);
+  } else {
+    out.keyParams = state.value.keyParams;
+  }
+
+  // finally set global params
+  if (out.params) {
+    out.params = Object.assign({}, state.value.params, out.params);
+  } else {
+    out.params = state.value.params;
+  }
+
   return out;
 });
 
 provide(routerStateKey, match);
+
+const key = computed(() => {
+  return Object.entries(match.value.keyParams ?? {})
+    .map(([key, value]) => {
+      return `${key}=${value}`;
+    })
+    .join(',');
+});
 
 // TODO: It's not clear why we need to connect to parent - reasses later?
 
@@ -66,16 +103,5 @@ provide(routerStateKey, match);
 </script>
 
 <template>
-  <div style="border: 2px solid blue">
-    Route2 active={{ match.active }} routerPath={{ match.path }} props.path={{ props.path }}
-
-    <template v-if="match.active">
-      ACTIVE
-      <div style="border: 2px solid red">
-        <slot></slot></div
-    ></template>
-    <template v-else>
-      <!-- not active -->
-    </template>
-  </div>
+  <template v-if="match.active"><slot :key="key"></slot></template>
 </template>

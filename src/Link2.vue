@@ -18,7 +18,7 @@ const href = computed(() => {
   }
 
   const u = new URL('http://localhost'); // use URL for its computing ability
-  u.pathname = state?.value.nest + props.href;
+  u.pathname = state.value.nest + props.href;
 
   return u.pathname;
 });
