@@ -19,7 +19,6 @@ watchEffect((cleanup) => {
   cleanup(() => c.abort());
 
   const update = () => {
-    console.info('got new href', ensureTrailingSlash(window.location.pathname));
     state.path = ensureTrailingSlash(window.location.pathname);
   };
   update();
