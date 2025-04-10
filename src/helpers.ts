@@ -62,7 +62,6 @@ export function matchPath(propsPath: string, routerPath: string): MatchResult {
     return defaultMatchResult;
   }
 
-  // TODO: hasChildren?
   if (!propsPath.startsWith('/')) {
     propsPath = `/${propsPath}`;
   }
@@ -204,16 +203,20 @@ export function applyDisplayMatch(
   children: { match?: boolean; display?: boolean }[],
   matchAll?: boolean,
 ) {
+  const firstMatch = children.findIndex(({ match }) => match);
+  const hasMatch = firstMatch !== -1;
+  const defaultNoMatchDisplay = hasMatch ? false : undefined;
+
   if (matchAll) {
     // display <= match
     for (const c of children) {
-      c.display = c.match ?? false;
+      c.display = c.match || defaultNoMatchDisplay;
     }
   } else {
     // display <= only first match
     const firstMatch = children.findIndex(({ match }) => match);
     for (let i = 0; i < children.length; ++i) {
-      children[i].display = firstMatch === i;
+      children[i].display = firstMatch === i || defaultNoMatchDisplay;
     }
   }
 }

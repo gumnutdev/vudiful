@@ -1,7 +1,8 @@
 <script lang="ts" setup>
-import { inject, provide, reactive, watchEffect } from 'vue';
+import { computed, inject, provide, reactive, watchEffect } from 'vue';
 import { type RouteState, routeStateKey, type RouteChildState } from './keys';
 import { applyDisplayMatch, matchPath } from './helpers';
+import WrapComponent from './WrapComponent.vue';
 
 // nb. uses long-form syntax so we can get `undefined` explicitly
 const props = defineProps({
@@ -10,6 +11,12 @@ const props = defineProps({
    */
   matchSelf: {
     type: Boolean,
+    default: undefined,
+    required: false,
+  },
+
+  component: {
+    type: Object,
     default: undefined,
     required: false,
   },
@@ -136,7 +143,8 @@ provide(routeStateKey, ourState);
       reactiveSelf.display ? 'green; background: #afa5' : 'red; background: #faa5'
     }; margin: 8px`"
   >
-    Should I display={{ reactiveSelf.display }}<br />
+    Should I display={{ reactiveSelf.display === undefined ? 'undefined' : reactiveSelf.display
+    }}<br />
     My path={{ props.path }}<br />
     My local view match={{ reactiveSelf.match }} pathMatch={{ reactiveSelf.pathMatch }}<br />
     <template v-if="ourState.children.size">
@@ -145,7 +153,9 @@ provide(routeStateKey, ourState);
 
     <template v-if="reactiveSelf.display || reactiveSelf.pathMatch">
       <div :class="'router-manager ' + (reactiveSelf.display ? 'display' : 'ambig')">
-        <slot></slot>
+        <WrapComponent :component="props.component" :display="reactiveSelf.display">
+          <slot></slot>
+        </WrapComponent>
       </div>
     </template>
   </div>
