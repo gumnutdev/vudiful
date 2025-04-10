@@ -1,16 +1,19 @@
 <script lang="ts" setup>
 import { provide, reactive, watchEffect } from 'vue';
-import { prouteStateKey, SomeState } from './keys.ts';
+import { PRouteState, prouteStateKey, SomeState } from './keys.ts';
 import { applyDisplayMatch, ensureTrailingSlash } from './helpers.ts';
 
 const props = defineProps<{
   matchAll?: boolean;
 }>();
 
-const state = reactive({
+const state = reactive<PRouteState>({
   children: new Set<SomeState>(),
   path: '',
   nest: '/',
+  keyParams: {},
+  params: {},
+  paramsBase: {},
 });
 provide(prouteStateKey, state);
 

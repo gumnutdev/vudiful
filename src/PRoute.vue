@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { inject, onUnmounted, provide, reactive, watchEffect } from 'vue';
-import { prouteStateKey, type SomeState } from './keys';
+import { inject, provide, reactive, watchEffect } from 'vue';
+import { PRouteState, prouteStateKey, type SomeState } from './keys';
 import { applyDisplayMatch, matchPath } from './helpers';
 
 // nb. uses long-form syntax so we can get `undefined` explicitly
@@ -38,6 +38,12 @@ const props = defineProps({
     default: undefined,
     required: false,
   },
+
+  retainOnParamsChange: {
+    type: Boolean,
+    default: undefined,
+    required: false,
+  },
 });
 
 const reactiveSelf = reactive<SomeState>({
@@ -52,25 +58,19 @@ const parentState = inject(
   true,
 );
 
-let controller: AbortController | undefined;
-watchEffect(() => {
-  controller?.abort();
-  controller = new AbortController();
-
+watchEffect((cleanup) => {
   const c = parentState.children;
   c.add(reactiveSelf);
-  controller.signal.addEventListener('abort', () => {
-    c.delete(reactiveSelf);
-  });
-});
-onUnmounted(() => {
-  controller?.abort();
+  cleanup(() => c.delete(reactiveSelf));
 });
 
-const ourState = reactive({
+const ourState = reactive<PRouteState>({
   children: new Set<SomeState>(),
   path: '',
   nest: '',
+  keyParams: {},
+  params: {},
+  paramsBase: {},
 });
 
 watchEffect(() => {
@@ -96,8 +96,35 @@ watchEffect(() => {
 
     reactiveSelf.match = reactiveSelf.pathMatch && anyChildMatch;
   }
-
   applyDisplayMatch(children, props.matchAll);
+
+  // this must occur before out.params below
+  if (props.retainOnParamsChange) {
+    ourState.keyParams = {};
+  } else if (matchOut.params) {
+    ourState.keyParams = Object.assign({}, parentState.keyParams, matchOut.params);
+  } else {
+    ourState.keyParams = parentState.keyParams;
+  }
+
+  // finally set global params
+  if (matchOut.params) {
+    ourState.params = Object.assign({}, parentState.params, matchOut.params);
+  } else {
+    ourState.params = parentState.params;
+  }
+
+  // ... and base (links)
+  if (matchOut.paramsBase) {
+    const matchedParamsBase = matchOut.paramsBase;
+    ourState.paramsBase = Object.assign({}, parentState.paramsBase);
+
+    for (const key in matchedParamsBase) {
+      ourState.paramsBase[key] = parentState.nest + matchedParamsBase[key].substring(1);
+    }
+  } else {
+    ourState.paramsBase = parentState.paramsBase;
+  }
 });
 
 provide(prouteStateKey, ourState);

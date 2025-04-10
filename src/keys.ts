@@ -48,6 +48,10 @@ export type PRouteState = {
   path: string;
   nest: string;
   children: Set<SomeState>;
+
+  params: Record<string, string>;
+  keyParams: Record<string, string>;
+  paramsBase: Record<string, string>;
 };
 
 export const prouteStateKey = Symbol('proute') as InjectionKey<Reactive<PRouteState>>;
