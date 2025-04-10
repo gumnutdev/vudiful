@@ -20,4 +20,6 @@ export type RouteState = {
   paramsBase: Record<string, string>;
 };
 
-export const routeStateKey = Symbol('vutiful-route-state') as InjectionKey<Reactive<RouteState>>;
+// TODO: the vite/vue build dance creates this many times :cry:
+export const routeStateKey = //
+  Symbol.for('__vutiful-route-state__') as InjectionKey<Reactive<RouteState>>;

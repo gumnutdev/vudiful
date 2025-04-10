@@ -1,6 +1,6 @@
 {
   "name": "vudiful",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "devDependencies": {
     "@types/node": "^22.7.5",
     "@vitejs/plugin-vue": "^5.2.3",
