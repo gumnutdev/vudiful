@@ -33,6 +33,10 @@ export class Link extends LinkImport {
  * Describes a declarative route.
  */
 export class Route extends RouteImport {
+  /**
+   * The path to match.
+   * The string "/" and "" are the same, you can also prefix/suffix the path if you want.
+   */
   path?: string;
 
   /**
@@ -45,9 +49,20 @@ export class Route extends RouteImport {
   component?: Component;
 
   /**
-   * If true, will only match the first direct descendant `<Route>`, not all valid ones.
+   * Render all subordinate routes that match, not just the first.
+   *
+   * If the route has no children, this has no effect: the route matches anyway.
+   * If the route path is a glob, this has no effect: the route matches anyway.
+   * (You can force this to `false` to change the behavior.)
    */
-  matchFirst?: boolean;
+  matchAll?: boolean;
+
+  /**
+   * Normally, if this `<Route>` has children, it will not match unless a child matches.
+   *
+   * Set this to display the `<Route>` regardless.
+   */
+  matchSelf?: boolean;
 
   /**
    * By default, the contained component will be recreated if the params here (e.g., "/:foo") change.
@@ -63,4 +78,13 @@ export class Route extends RouteImport {
  * The top-level router.
  * This is not configurable and just uses `window.location.pathname` to determine the current route.
  */
-export class Router extends RouterImport {}
+export class Router extends RouterImport {
+  /**
+   * Render all subordinate routes that match, not just the first.
+   *
+   * If the route has no children, this has no effect: the route matches anyway.
+   * If the route path is a glob, this has no effect: the route matches anyway.
+   * (You can force this to `false` to change the behavior.)
+   */
+  matchAll?: boolean;
+}

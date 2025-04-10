@@ -25,7 +25,7 @@ const handleGoto = (e: Event) => {
       <Route path="/extra/">
         <Route path="1" :component="WrapComponent">
           <Route path="2"><strong>First</strong></Route>
-          <!-- <Route path="2"><strong>Second</strong></Route> -->
+          <Route path="2"><strong>Second</strong></Route>
           <Route path="2a" :component="WrapComponent">
             I'm a 2a
             <Route path="3">I'm 3 and I should display</Route>
@@ -41,7 +41,7 @@ const handleGoto = (e: Event) => {
       <Route path="not-extra"></Route>
       <Route path="not-extra2"></Route>
       <Route path="not-extra-123">
-        <Route path="sub-extra"></Route>
+        <Route path="sub-extra">Sub extra</Route>
       </Route>
     </Route>
   </Router>

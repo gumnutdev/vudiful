@@ -1,16 +1,15 @@
 <script lang="ts" setup>
-import { computed, inject, provide, reactive, watchEffect } from 'vue';
+import { inject, provide, reactive, watchEffect } from 'vue';
 import { type RouteState, routeStateKey, type RouteChildState } from './keys';
 import { applyDisplayMatch, matchPath } from './helpers';
 import WrapComponent from './WrapComponent.vue';
 
+const DEBUG = false;
+
 // nb. uses long-form syntax so we can get `undefined` explicitly
 const props = defineProps({
-  /**
-   * Render all subordinate routes that match, not just the first.
-   */
-  matchSelf: {
-    type: Boolean,
+  path: {
+    type: String,
     default: undefined,
     required: false,
   },
@@ -21,27 +20,14 @@ const props = defineProps({
     required: false,
   },
 
-  /**
-   * Normally, if this `<Route>` has children, it will not match unless a child matches.
-   *
-   * Set this to display the `<Route>` regardless.
-   *
-   * If the route has no children, this has no effect: the route matches anyway.
-   * If the route path is a glob, this has no effect: the route matches anyway.
-   * (You can force this to `false` to change the behavior.)
-   */
   matchAll: {
     type: Boolean,
     default: undefined,
     required: false,
   },
 
-  /**
-   * The path to match.
-   * The string "/" and "" are the same, you can also prefix/suffix the path if you want.
-   */
-  path: {
-    type: String,
+  matchSelf: {
+    type: Boolean,
     default: undefined,
     required: false,
   },
@@ -138,37 +124,41 @@ provide(routeStateKey, ourState);
 </script>
 
 <template>
-  <div
-    :style="`border: 2px solid ${
-      reactiveSelf.display ? 'green; background: #afa5' : 'red; background: #faa5'
-    }; margin: 8px`"
-  >
-    Should I display={{ reactiveSelf.display === undefined ? 'undefined' : reactiveSelf.display
-    }}<br />
-    My path={{ props.path }}<br />
-    My local view match={{ reactiveSelf.match }} pathMatch={{ reactiveSelf.pathMatch }}<br />
-    <template v-if="ourState.children.size">
-      My children's states={{ [...ourState.children].map((x) => x.match).join(',') }}<br />
-    </template>
+  <template v-if="DEBUG">
+    <div
+      :style="`border: 2px solid ${
+        reactiveSelf.display ? 'green; background: #afa5' : 'red; background: #faa5'
+      }; margin: 8px`"
+    >
+      Should I display={{ reactiveSelf.display === undefined ? 'undefined' : reactiveSelf.display
+      }}<br />
+      My path={{ props.path }}<br />
+      My local view match={{ reactiveSelf.match }} pathMatch={{ reactiveSelf.pathMatch }}<br />
+      <template v-if="ourState.children.size">
+        My children's states={{ [...ourState.children].map((x) => x.match).join(',') }}<br />
+      </template>
+    </div>
+  </template>
 
-    <template v-if="reactiveSelf.display || reactiveSelf.pathMatch">
-      <div :class="'router-manager ' + (reactiveSelf.display ? 'display' : 'ambig')">
-        <WrapComponent :component="props.component" :display="reactiveSelf.display">
-          <slot></slot>
-        </WrapComponent>
-      </div>
-    </template>
-  </div>
+  <template v-if="reactiveSelf.display || reactiveSelf.pathMatch">
+    <div :class="'router-manager ' + (reactiveSelf.display ? 'display' : DEBUG ? 'debug' : '')">
+      <WrapComponent :component="props.component" :display="reactiveSelf.display">
+        <slot></slot>
+      </WrapComponent>
+    </div>
+  </template>
 </template>
 
 <style scoped>
 .router-manager {
-  display: block;
+  display: none;
 }
 .router-manager.display {
   display: contents;
 }
-.router-manager.ambig {
+/* used for DEBUG mode */
+.router-manager.debug {
+  display: block;
   opacity: 0.5;
 }
 </style>
