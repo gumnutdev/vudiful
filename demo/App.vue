@@ -1,12 +1,8 @@
 <script setup lang="ts">
-import { ref, useTemplateRef } from 'vue';
+import { useTemplateRef } from 'vue';
 import DemoComponent from './DemoComponent.vue';
 import WrapComponent from './WrapComponent.vue';
-import PRoute from '../src/PRoute.vue';
-import PRouter from '../src/PRouter.vue';
-
-const matchFirst = ref(true);
-const toggleMatchFirst = () => (matchFirst.value = !matchFirst.value);
+import { Route, Router, Link } from '../src/index.ts';
 
 const textRef = useTemplateRef('textRef');
 const handleGoto = (e: Event) => {
@@ -19,58 +15,35 @@ const handleGoto = (e: Event) => {
 <template>
   Hello from app
 
-  <button @click="toggleMatchFirst">Toggle</button>
-
-  <!-- <Router>
-    <Route match-first comment="Top">
-      Top-level whatever
-
-      <Route path="/createProject">
-        Create Project
-        <Link href="../">Goto top</Link>
-      </Route>
-
-      <Route sub-match comment="Sub match doohickey">
-        Zero sth
-        <Route path="/extra">Something a little extra</Route>
-        <Route path="/complex">
-          Default
-          <Link href="../createProject">Goto createProject</Link>
-        </Route>
-      </Route>
-
-      <Route path="/*"> Rest </Route>
-    </Route>
-  </Router> -->
-
   <form>
     <input type="text" ref="textRef" />
     <button @click="handleGoto">Goto</button>
   </form>
 
-  <PRouter>
-    <PRoute>
-      <PRoute path="/extra/">
-        <PRoute path="1" match-self>
-          <PRoute path="2"><strong>First</strong></PRoute>
-          <PRoute path="2"><strong>Second</strong></PRoute>
-          <PRoute path="2a">
+  <Router>
+    <Route>
+      <Route path="/extra/">
+        <Route path="1" match-self>
+          <Route path="2"><strong>First</strong></Route>
+          <Route path="2"><strong>Second</strong></Route>
+          <Route path="2a">
             I'm a 2a
-            <PRoute path="3">I'm 3 and I should display</PRoute>
-          </PRoute>
-          <PRoute path="*">
+            <Route path="3">I'm 3 and I should display</Route>
+          </Route>
+          <Route path="*">
             No route matched
+            <Link href="2" active-class="red">To page 2</Link>
 
-            <PRoute path="butt"> But butt </PRoute>
-          </PRoute>
-        </PRoute>
-      </PRoute>
-      <PRoute path="not-extra"></PRoute>
-      <PRoute path="not-extra-123">
-        <PRoute path="sub-extra"></PRoute>
-      </PRoute>
-    </PRoute>
-  </PRouter>
+            <Route path="butt"> But butt </Route>
+          </Route>
+        </Route>
+      </Route>
+      <Route path="not-extra"></Route>
+      <Route path="not-extra-123">
+        <Route path="sub-extra"></Route>
+      </Route>
+    </Route>
+  </Router>
 </template>
 
 <style>

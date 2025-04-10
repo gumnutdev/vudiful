@@ -1,22 +1,36 @@
 <script lang="ts" setup>
-import { provide, ref, watchEffect } from 'vue';
-import { defaultRouterState, type RouterState, routerStateKey } from './keys.ts';
-import { ensureTrailingSlash } from './helpers.ts';
+import { provide, reactive, watchEffect } from 'vue';
+import { type RouteState, routeStateKey, type RouteChildState } from './keys.ts';
+import { applyDisplayMatch, ensureTrailingSlash } from './helpers.ts';
 
-const r = ref<RouterState>(defaultRouterState);
+const props = defineProps<{
+  matchAll?: boolean;
+}>();
+
+const state = reactive<RouteState>({
+  children: new Set<RouteChildState>(),
+  path: '',
+  nest: '/',
+  keyParams: {},
+  params: {},
+  paramsBase: {},
+});
+provide(routeStateKey, state);
 
 watchEffect((cleanup) => {
   const c = new AbortController();
   cleanup(() => c.abort());
 
   const update = () => {
-    r.value = { path: ensureTrailingSlash(window.location.pathname), nest: '/' };
+    state.path = ensureTrailingSlash(window.location.pathname);
   };
   update();
   window.addEventListener('popstate', update, { signal: c.signal });
 });
 
-provide(routerStateKey, r);
+watchEffect(() => {
+  applyDisplayMatch([...state.children], props.matchAll);
+});
 </script>
 
 <template>

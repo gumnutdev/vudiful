@@ -1,5 +1,5 @@
 import { computed, effect, inject, reactive, shallowReactive, toValue, type MaybeRef } from 'vue';
-import { routerStateKey } from './keys.ts';
+import { routeStateKey } from './keys.ts';
 import { determineClass, gotoResolvedHref, mergeHref } from './helpers.ts';
 
 /**
@@ -7,7 +7,7 @@ import { determineClass, gotoResolvedHref, mergeHref } from './helpers.ts';
  * Basically reveals all params specified in router parts like "/:foo/:bar/".
  */
 export const useParams = (): Readonly<Record<string, string>> => {
-  const state = inject(routerStateKey);
+  const state = inject(routeStateKey);
 
   const out = shallowReactive<Record<string, string>>({});
 
@@ -15,7 +15,7 @@ export const useParams = (): Readonly<Record<string, string>> => {
     for (const k in out) {
       delete out[k];
     }
-    Object.assign(out, state?.value.params);
+    Object.assign(out, state?.params);
   });
 
   return out;
@@ -50,21 +50,19 @@ export type BindLink = {
  * Use like `<a v-bind="useBindLink('path-to-thing')>"`.
  */
 export const useBindLink = (href: MaybeRef<string>, arg?: LinkArg): BindLink => {
-  const state = inject(routerStateKey);
+  const state = inject(routeStateKey);
 
   const computedHref = computed(() => {
     const partialHref = toValue(href);
     const partialRoot = toValue(arg?.root ?? undefined);
     return mergeHref({
-      state: state?.value,
+      state,
       href: partialHref,
       root: partialRoot,
     });
   });
 
-  const className = computed(() =>
-    determineClass({ state: state?.value, ...arg, href: computedHref }),
-  );
+  const className = computed(() => determineClass({ state, ...arg, href: computedHref }));
 
   const r = reactive<BindLink>({
     onClick: gotoResolvedHref.bind(null, computedHref),
@@ -95,10 +93,10 @@ export type GotoHrefFunc = (href: MaybeRef<string>, arg?: { root?: string }) => 
  * This must be obtianed as part of setup, because we inject the current router state.
  */
 export const useGotoHref = (): GotoHrefFunc => {
-  const state = inject(routerStateKey);
+  const state = inject(routeStateKey);
 
   return (href: MaybeRef<string>, arg?: { root?: string }) => {
-    const out = mergeHref({ href: toValue(href), root: arg?.root, state: toValue(state) });
+    const out = mergeHref({ href: toValue(href), root: arg?.root, state });
     gotoResolvedHref(out);
   };
 };

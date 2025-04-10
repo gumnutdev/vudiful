@@ -1,40 +1,6 @@
-import type { InjectionKey, Reactive, Ref, ShallowReactive } from 'vue';
+import type { InjectionKey, Reactive } from 'vue';
 
-export type MatchResult = {
-  path: string;
-  nest: string;
-  matched: boolean;
-  globResult: boolean;
-
-  /**
-   * The canonical, complete set of params 'within' this route.
-   */
-  params?: Record<string, string>;
-
-  /**
-   * As {@link RouterState#params}, but filtered if/when the user has set "retain-on-params-change".
-   */
-  keyParams?: Record<string, string>;
-
-  /**
-   * Where the key params are positioned here.
-   */
-  paramsBase?: Record<string, string>;
-};
-
-export const defaultMatchResult: MatchResult = Object.freeze({
-  path: '',
-  nest: '',
-  matched: false,
-  globResult: false,
-});
-
-export type MatchState = {
-  matched?: boolean;
-  display: boolean;
-};
-
-export type SomeState = {
+export type RouteChildState = {
   match?: boolean;
   pathMatch?: boolean;
 
@@ -44,14 +10,14 @@ export type SomeState = {
   display?: boolean;
 };
 
-export type PRouteState = {
+export type RouteState = {
   path: string;
   nest: string;
-  children: Set<SomeState>;
+  children: Set<RouteChildState>;
 
   params: Record<string, string>;
   keyParams: Record<string, string>;
   paramsBase: Record<string, string>;
 };
 
-export const prouteStateKey = Symbol('proute') as InjectionKey<Reactive<PRouteState>>;
+export const routeStateKey = Symbol('vutiful-route-state') as InjectionKey<Reactive<RouteState>>;

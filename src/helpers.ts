@@ -1,5 +1,34 @@
 import { Ref, toValue, type MaybeRef } from 'vue';
-import { defaultMatchResult, type MatchResult } from './keys.ts';
+import type { RouteState } from './keys.ts';
+
+export type MatchResult = {
+  path: string;
+  nest: string;
+  matched: boolean;
+  globResult: boolean;
+
+  /**
+   * The canonical, complete set of params 'within' this route.
+   */
+  params?: Record<string, string>;
+
+  /**
+   * As {@link RouterState#params}, but filtered if/when the user has set "retain-on-params-change".
+   */
+  keyParams?: Record<string, string>;
+
+  /**
+   * Where the key params are positioned here.
+   */
+  paramsBase?: Record<string, string>;
+};
+
+export const defaultMatchResult: MatchResult = Object.freeze({
+  path: '',
+  nest: '',
+  matched: false,
+  globResult: false,
+});
 
 const splitRoute = (x: string): string[] => {
   if (x === '/' || !x) {
@@ -102,7 +131,7 @@ export const hrefIsRemote = (href?: string) =>
 
 export const ensureTrailingSlash = (href: string) => (href.endsWith('/') ? href : href + '/');
 
-export const mergeHref = (arg: { href?: string; state?: MatchResult; root?: string }) => {
+export const mergeHref = (arg: { href?: string; state?: RouteState; root?: string }) => {
   if (!arg.href || arg.href.startsWith('/')) {
     return arg.href;
   }
@@ -147,7 +176,7 @@ export const gotoResolvedHref = (hrefRef: MaybeRef<string | undefined>, e?: Mous
 
 export const determineClass = (arg: {
   href: Ref<string | undefined>;
-  state?: MatchResult;
+  state?: RouteState;
   activeClass?: string;
   nestedClass?: string;
 }): string | undefined => {
