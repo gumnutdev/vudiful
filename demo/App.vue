@@ -2,7 +2,7 @@
 import { useTemplateRef } from 'vue';
 import DemoComponent from './DemoComponent.vue';
 import WrapComponent from './WrapComponent.vue';
-import { Route, Router, Link } from '../src/index.ts';
+import { VFRoute as Route, VFRouter as Router, VFLink as Link } from '../src/index.ts';
 
 const textRef = useTemplateRef('textRef');
 const handleGoto = (e: Event) => {

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { computed, inject } from 'vue';
-import { routeStateKey } from './keys';
-import { determineClass, gotoResolvedHref, mergeHref } from './helpers';
+import { routeStateKey } from '../lib/keys.ts';
+import { determineClass, gotoResolvedHref, mergeHref } from '../lib/helpers.ts';
 
 const props = defineProps<{
   href?: string;

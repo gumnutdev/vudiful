@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import { inject, provide, reactive, watchEffect } from 'vue';
-import { type RouteState, routeStateKey, type RouteChildState } from './keys';
-import { applyDisplayMatch, matchPath } from './helpers';
+import { inject, onMounted, onUnmounted, provide, reactive, ref, watchEffect } from 'vue';
+import { type RouteState, routeStateKey, type RouteChildState } from '../lib/keys.ts';
+import { applyDisplayMatch, matchPath } from '../lib/helpers.ts';
 import WrapComponent from './WrapComponent.vue';
 
 const DEBUG = false;
@@ -46,7 +46,7 @@ const reactiveSelf = reactive<RouteChildState>({
 const parentState = inject(
   routeStateKey,
   () => {
-    throw new Error('only use <PRoute> inside <PRouter>');
+    throw new Error('only use <Route> inside <Router>');
   },
   true,
 );
@@ -66,19 +66,25 @@ const ourState = reactive<RouteState>({
   paramsBase: {},
 });
 
+const mounted = ref<boolean>(false);
+onMounted(() => (mounted.value = true));
+onUnmounted(() => (mounted.value = false));
+
 watchEffect(() => {
   const matchOut = matchPath(props.path || '', parentState.path);
   ourState.path = matchOut.path;
   ourState.nest = parentState.nest + matchOut.nest.substring(1);
 
+  // nb. we MUST check mounted.value here; this runs before everyone is mounted
+  // this basically says "don't care about excessPath until everyone is mounted"
+  // there are probably nicer places to put this `mounted.value` check
+  const hasExcessPath = mounted.value && matchOut.path.length > 1;
   const children = [...ourState.children];
 
   reactiveSelf.pathMatch = matchOut.matched;
   if (props.matchSelf) {
     reactiveSelf.match = reactiveSelf.pathMatch;
   } else {
-    const hasExcessPath = ourState.path !== '/';
-
     // We match:
     //   - (if not disabled) a glob result (ends with "*")
     //   - we has no children and no excess path (i.e., we didn't descend into invalid children)
@@ -130,6 +136,7 @@ provide(routeStateKey, ourState);
         reactiveSelf.display ? 'green; background: #afa5' : 'red; background: #faa5'
       }; margin: 8px`"
     >
+      mounted={{ mounted }}<br />
       Should I display={{ reactiveSelf.display === undefined ? 'undefined' : reactiveSelf.display
       }}<br />
       My path={{ props.path }}<br />
@@ -137,15 +144,26 @@ provide(routeStateKey, ourState);
       <template v-if="ourState.children.size">
         My children's states={{ [...ourState.children].map((x) => x.match).join(',') }}<br />
       </template>
+
+      displayAtAll = {{ reactiveSelf.display || reactiveSelf.pathMatch }}
+
+      <template v-if="reactiveSelf.display || reactiveSelf.pathMatch">
+        <div :class="'router-manager ' + (reactiveSelf.display ? 'display' : DEBUG ? 'debug' : '')">
+          <WrapComponent :component="props.component" :display="reactiveSelf.display">
+            <slot></slot>
+          </WrapComponent>
+        </div>
+      </template>
     </div>
   </template>
-
-  <template v-if="reactiveSelf.display || reactiveSelf.pathMatch">
-    <div :class="'router-manager ' + (reactiveSelf.display ? 'display' : DEBUG ? 'debug' : '')">
-      <WrapComponent :component="props.component" :display="reactiveSelf.display">
-        <slot></slot>
-      </WrapComponent>
-    </div>
+  <template v-else>
+    <template v-if="reactiveSelf.display || reactiveSelf.pathMatch">
+      <div :class="reactiveSelf.display ? 'router-manager display' : 'router-manager'">
+        <WrapComponent :component="props.component" :display="reactiveSelf.display">
+          <slot></slot>
+        </WrapComponent>
+      </div>
+    </template>
   </template>
 </template>
 

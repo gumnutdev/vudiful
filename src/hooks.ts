@@ -1,6 +1,6 @@
 import { computed, effect, inject, reactive, shallowReactive, toValue, type MaybeRef } from 'vue';
-import { routeStateKey } from './keys.ts';
-import { determineClass, gotoResolvedHref, mergeHref } from './helpers.ts';
+import { routeStateKey } from './lib/keys.ts';
+import { determineClass, gotoResolvedHref, mergeHref } from './lib/helpers.ts';
 
 /**
  * Retrieves the reactive params under this router path.

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { provide, reactive, watchEffect } from 'vue';
-import { type RouteState, routeStateKey, type RouteChildState } from './keys.ts';
-import { applyDisplayMatch, ensureTrailingSlash } from './helpers.ts';
+import { type RouteState, routeStateKey, type RouteChildState } from '../lib/keys.ts';
+import { applyDisplayMatch, ensureTrailingSlash } from '../lib/helpers.ts';
 
 const props = defineProps<{
   matchAll?: boolean;

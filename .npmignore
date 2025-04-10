@@ -1,0 +1,4 @@
+demo/
+.vscode/
+vite.config.ts
+.prettierrc.json
